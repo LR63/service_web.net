@@ -1,6 +1,6 @@
 namespace GameServerApi.Models;
 
-public enum Role
+public enum UserRole
 {
     User,
     Admin
