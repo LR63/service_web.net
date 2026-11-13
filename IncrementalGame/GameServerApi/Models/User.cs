@@ -2,13 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GameServerApi.Models;
 
-public class User(UserInfo userInfo)
+public class User(UserPass userPass)
 {
     private static int _cpt = 0;
 
     public int Id { get; set; } = _cpt++;
 
-    public string Pseudo { get; } = userInfo.Pseudo;
-    public string Password { get; } = userInfo.Password;
-    public Role Role { get; set; }
+    public string Pseudo { get; } = userPass.Pseudo;
+    public string Password { get; } = userPass.Password;
+    public UserRole UserRole { get; set; }
 }
