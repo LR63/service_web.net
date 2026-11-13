@@ -1,0 +1,11 @@
+@GameServerApi_HostAddress = http://localhost:5045
+
+GET {{GameServerApi_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+
+GET {{GameServerApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
