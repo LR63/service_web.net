@@ -4,5 +4,5 @@ public class UserPublic(User? user)
 {
     public int Id { get; } = user.Id;
     public string Pseudo { get; } = user.Pseudo;
-    public UserRole Role { get; } = user.Role;
+    public UserRole UserRole { get; } = user.Role;
 }

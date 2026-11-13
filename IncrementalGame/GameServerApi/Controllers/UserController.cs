@@ -22,19 +22,19 @@ namespace GameServerApi.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult Register(UserPass userInfo)
+        public ActionResult Register(UserPass userPass)
         {
-            var u = new User(userInfo.Pseudo, userInfo.Password);
+            var u = new User(userPass.Pseudo, userPass.Password);
             Users.Add(u);
             return Ok(new UserPublic(u));
         }
         
         [HttpPost("login")]
-        public ActionResult Login(UserPass userInfo)
+        public ActionResult Login(UserPass userPass)
         {
-            if (Users.Exists(x => x.Pseudo == userInfo.Pseudo && x.Password == userInfo.Password))
+            if (Users.Exists(x => x.Pseudo == userPass.Pseudo && x.Password == userPass.Password))
             {
-                return Ok(new UserPublic(Users.Find(x => x.Pseudo == userInfo.Pseudo && x.Password == userInfo.Password)));
+                return Ok(new UserPublic(Users.Find(x => x.Pseudo == userPass.Pseudo && x.Password == userPass.Password)));
             }
             return Unauthorized();
         }
