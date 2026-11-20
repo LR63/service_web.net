@@ -21,9 +21,7 @@ public class GameController(BDDContext context) : ControllerBase
     [HttpGet("Progression/{userId:int}")]
     public async Task<ActionResult> GetProgression(int userId)
     {
-        var u = await context.Users.FindAsync(userId);
-
-        if (null == u)
+        if (null == await context.Users.FindAsync(userId))
         {
             return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
         }
@@ -41,9 +39,7 @@ public class GameController(BDDContext context) : ControllerBase
     [HttpGet("Initialize/{userId:int}")]
     public async Task<ActionResult> Initialize(int userId)
     {
-        var u = await context.Users.FindAsync(userId);
-
-        if (null == u)
+        if (null == await context.Users.FindAsync(userId))
         {
             return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
         }
@@ -67,6 +63,26 @@ public class GameController(BDDContext context) : ControllerBase
         }
 
         return Ok(p);
+    }
+    
+    // GET /api/Game/Click/{userId}
+    [HttpGet("Click/{userId:int}")]
+    public async Task<ActionResult> Click(int userId)
+    {
+        if (null == await context.Users.FindAsync(userId))
+        {
+            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+        }
+        
+        var p = await context.Progressions.FirstOrDefaultAsync(p=>p.UserId.Equals(userId));
+        if (null == p)
+        {
+            return BadRequest(new ErrorResponse("No progression", "NO_PROGRESSION"));
+        }
+
+        p.Count += p.Multiplier;
+        await context.SaveChangesAsync();
+        return Ok(new ClickResponse(p.Count,p.Multiplier));
     }
 
     // GET /api/Game/ResetCost/{userId}
@@ -96,6 +112,7 @@ public class GameController(BDDContext context) : ControllerBase
             userProgression.BestScore = Math.Max(userProgression.BestScore, userProgression.Count);
             userProgression.Count = 0;
             userProgression.Multiplier += 1;
+            await context.SaveChangesAsync();
         }
         return Ok(userProgression);
     }
