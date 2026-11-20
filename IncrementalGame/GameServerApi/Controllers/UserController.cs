@@ -42,10 +42,6 @@ namespace GameServerApi.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<UserPublic>> Register(UserPass upass)
         {
-            if (await _context.Users.AnyAsync(x => x.Username.Equals(upass.Username)))
-            {
-                return Conflict(new ErrorResponse("Username already exists", "USERNAME_EXISTS"));
-            }
             User user = new(upass.Username);
             user.Password = _hasher.HashPassword(user, upass.Password);
             _context.Users.Add(user);
