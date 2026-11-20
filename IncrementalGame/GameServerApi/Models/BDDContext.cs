@@ -10,4 +10,5 @@ public class BDDContext(DbContextOptions<BDDContext> options) : DbContext(option
     }
 
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Progression> Progressions { get; set; } = null!;
 }
