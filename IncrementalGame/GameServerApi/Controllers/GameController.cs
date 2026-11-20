@@ -65,6 +65,23 @@ public class GameController(BDDContext context) : ControllerBase
             userProgression.Count = 0;
             userProgression.Multiplier += 1;
         }
+        else
+        {
+            return BadRequest(new ErrorResponse("Not enough points to reset", "INSUFFICIENT_CLICKS"));
+        }
         return Ok(userProgression);
+    }
+
+    // GET /api/Game/BestScore
+    [HttpGet("BestScore")]
+    public async Task<ActionResult<BestScoreResponse>> GetBestScore()
+    {
+        if (!await context.Progressions.AnyAsync())
+        {
+            return NotFound(new ErrorResponse("No progressions found", "NO_PROGRESSIONS"));
+        }
+        var bestUser = await context.Progressions.OrderByDescending(p => p.BestScore).FirstAsync();
+        var bestScore = bestUser.BestScore;
+        return Ok(new BestScoreResponse(bestUser.UserId, bestScore));
     }
 }
