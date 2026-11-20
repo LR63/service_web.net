@@ -42,11 +42,16 @@ namespace GameServerApi.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<UserPublic>> Register(UserPass upass)
         {
-            User user = new(upass.Username);
-            user.Password = _hasher.HashPassword(user, upass.Password);
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return Ok(new UserPublic(user));
+            var userfound = _context.Users.FirstOrDefaultAsync(u => upass.Username.Equals(u.Username));
+            if(null == userfound) 
+            {
+                User user = new(upass.Username);
+                user.Password = _hasher.HashPassword(user, upass.Password);
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                return Ok(new UserPublic(user));
+            }
+            return BadRequest("USERNAME_EXISTS");
         }
 
         // POST /api/User/Login
