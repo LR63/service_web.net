@@ -30,9 +30,9 @@ public class GameController(BDDContext context) : ControllerBase
 
     private static int CalculateResetCost(int multiplier)
     {
-        double baseCost = 100.0;
-        double growthFactor = 1.5;
-        double cost = baseCost * Math.Pow(growthFactor, multiplier - 1);
+        const double baseCost = 100.0;
+        const double growthFactor = 1.5;
+        var cost = baseCost * Math.Pow(growthFactor, multiplier - 1);
         return (int)Math.Floor(cost);
     }
 
