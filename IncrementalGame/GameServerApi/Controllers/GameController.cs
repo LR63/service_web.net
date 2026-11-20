@@ -9,6 +9,15 @@ namespace GameServerApi.Controllers;
 [ApiController]
 public class GameController(BDDContext context) : ControllerBase
 {
+    private static int CalculateResetCost(int multiplier)
+    {
+        const double baseCost = 100.0;
+        const double growthFactor = 1.5;
+        var cost = baseCost * Math.Pow(growthFactor, multiplier - 1);
+        return (int)Math.Floor(cost);
+    }
+
+    // GET /api/Game/Progression/{userId}
     [HttpGet("Progression/{userId:int}")]
     public async Task<ActionResult> GetProgression(int userId)
     {
@@ -19,7 +28,7 @@ public class GameController(BDDContext context) : ControllerBase
             return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
         }
 
-        var p = await context.Progressions.FindAsync(u.Id);
+        var p = await context.Progressions.FirstOrDefaultAsync(p=>p.UserId.Equals(userId));
         if (null == p)
         {
             return BadRequest(new ErrorResponse("No progression", "NO_PROGRESSION"));
@@ -27,15 +36,38 @@ public class GameController(BDDContext context) : ControllerBase
 
         return Ok(p);
     }
-
-    private static int CalculateResetCost(int multiplier)
+    
+    // GET /api/Game/Initialize/{userId}
+    [HttpGet("Initialize/{userId:int}")]
+    public async Task<ActionResult> Initialize(int userId)
     {
-        const double baseCost = 100.0;
-        const double growthFactor = 1.5;
-        var cost = baseCost * Math.Pow(growthFactor, multiplier - 1);
-        return (int)Math.Floor(cost);
-    }
+        var u = await context.Users.FindAsync(userId);
 
+        if (null == u)
+        {
+            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+        }
+        
+        var p = await context.Progressions.FirstOrDefaultAsync(p=>p.UserId.Equals(userId));
+        if (null != p)
+        {
+            return BadRequest(new ErrorResponse("Progression exists", "PROGRESSION_EXISTS"));
+        }
+
+        p = new Progression(userId);
+        context.Progressions.Add(p);
+        try
+        {
+            await context.SaveChangesAsync(); 
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return BadRequest(new ErrorResponse("Échec lors de l'initialisation", "INITIALIZATION_FAILED"));
+        }
+
+        return Ok(p);
+    }
 
     // GET /api/Game/ResetCost/{userId}
     [HttpGet("ResetCost/{id:int}")]
