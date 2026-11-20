@@ -61,12 +61,12 @@ namespace GameServerApi.Controllers
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
-                    return BadRequest("REGISTRATION_FAILED");
+                    return BadRequest(new ErrorResponse("Échec lors de l'inscription", "REGISTRATION_FAILED"));
                 }
 
                 return Ok(new UserPublic(user));
             }
-            return BadRequest("USERNAME_EXISTS");
+            return BadRequest(new ErrorResponse("Nom d'utilisateur déjà pris", "USERNAME_EXISTS"));
         }
 
         // POST /api/User/Login
