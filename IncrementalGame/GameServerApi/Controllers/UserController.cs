@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using GameServerApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using SQLitePCL;
 
 namespace GameServerApi.Controllers;
 [Route("api/[controller]")]
@@ -29,35 +31,35 @@ public class UserController(BDDContext context, PasswordHasher<User> hasher) : C
         return Ok(await context.Users.Select(u => new UserPublic(u)).ToListAsync());
     }
 
-        // POST /api/User/Register
-        [HttpPost("Register")]
-        public async Task<ActionResult<UserPublic>> Register(UserPass upass)
-        {   
-            var userfound = await context.Users.FirstOrDefaultAsync(u => upass.Username.Equals(u.Username));
+    // POST /api/User/Register
+    [HttpPost("Register")]
+    public async Task<ActionResult<UserPublic>> Register(UserPass upass)
+    {   
+        var userfound = await context.Users.FirstOrDefaultAsync(u => upass.Username.Equals(u.Username));
 
-            if(null == userfound) 
+        if(null == userfound) 
+        {
+            User user = new(upass.Username);
+
+            if (await context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
+                user.Role = UserRole.Admin;
+            user.Password = hasher.HashPassword(user, upass.Password);
+            context.Users.Add(user);
+
+            try
             {
-                User user = new(upass.Username);
-
-                if (await context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
-                    user.Role = UserRole.Admin;
-                user.Password = hasher.HashPassword(user, upass.Password);
-                context.Users.Add(user);
-
-                try
-                {
-                   await context.SaveChangesAsync(); 
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return BadRequest(new ErrorResponse("Échec lors de l'inscription", "REGISTRATION_FAILED"));
-                }
-
-                return Ok(new UserPublic(user));
+               await context.SaveChangesAsync(); 
             }
-            return BadRequest(new ErrorResponse("Nom d'utilisateur déjà pris", "USERNAME_EXISTS"));
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return BadRequest(new ErrorResponse("Échec lors de l'inscription", "REGISTRATION_FAILED"));
+            }
+
+            return Ok(new UserPublic(user));
         }
+        return BadRequest(new ErrorResponse("Nom d'utilisateur déjà pris", "USERNAME_EXISTS"));
+    }
 
     // POST /api/User/Login
     [HttpPost("Login")]
@@ -116,6 +118,12 @@ public class UserController(BDDContext context, PasswordHasher<User> hasher) : C
         context.Users.Remove(u);
         await context.SaveChangesAsync();
 
+        Progression? uprog = await context.Progressions.FirstOrDefaultAsync(p => id == p.UserId);
+        
+        if (null != uprog)
+            context.Progressions.Remove(uprog);
+        context.Users.Remove(u);
+        await context.SaveChangesAsync();
         return Ok(true);
     }
 

@@ -14,7 +14,7 @@ partial class BDDContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261120135242_AjoutProgression";
+    public override string LastMigrationId => "20261120152435_AjoutProgression";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -25,6 +25,18 @@ partial class BDDContextModelSnapshot : ModelSnapshot
             {
                 b.Property<int>("Id")
                     .ValueGeneratedOnAdd()
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("BestScore")
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("Count")
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("Multiplier")
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("UserId")
                     .HasColumnType("INTEGER");
 
                 b.HasKey("Id");
@@ -40,6 +52,7 @@ partial class BDDContextModelSnapshot : ModelSnapshot
 
                 b.Property<string>("Password")
                     .IsRequired()
+                    .HasMaxLength(128)
                     .HasColumnType("TEXT");
 
                 b.Property<int>("Role")
@@ -47,6 +60,7 @@ partial class BDDContextModelSnapshot : ModelSnapshot
 
                 b.Property<string>("Username")
                     .IsRequired()
+                    .HasMaxLength(32)
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");

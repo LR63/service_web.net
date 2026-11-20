@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GameServerApi.Migrations;
 
 /// <inheritdoc />
-public partial class _20261120135242_AjoutProgression : Migration
+public partial class _20261120152435_AjoutProgression : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +15,11 @@ public partial class _20261120135242_AjoutProgression : Migration
             columns: table => new
             {
                 Id = table.Column<int>(type: "INTEGER", nullable: false)
-                    .Annotation("Sqlite:Autoincrement", true)
+                    .Annotation("Sqlite:Autoincrement", true),
+                UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                Count = table.Column<int>(type: "INTEGER", nullable: false),
+                Multiplier = table.Column<int>(type: "INTEGER", nullable: false),
+                BestScore = table.Column<int>(type: "INTEGER", nullable: false)
             },
             constraints: table =>
             {

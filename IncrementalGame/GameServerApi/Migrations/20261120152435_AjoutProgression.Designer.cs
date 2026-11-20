@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GameServerApi.Migrations;
 
 [DbContext(typeof(BDDContext))]
-[Migration("20261120135242_AjoutProgression")]
-partial class _20261120135242_AjoutProgression
+[Migration("20261120152435_AjoutProgression")]
+partial class _20261120152435_AjoutProgression
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,6 +23,18 @@ partial class _20261120135242_AjoutProgression
             {
                 b.Property<int>("Id")
                     .ValueGeneratedOnAdd()
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("BestScore")
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("Count")
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("Multiplier")
+                    .HasColumnType("INTEGER");
+
+                b.Property<int>("UserId")
                     .HasColumnType("INTEGER");
 
                 b.HasKey("Id");
@@ -38,6 +50,7 @@ partial class _20261120135242_AjoutProgression
 
                 b.Property<string>("Password")
                     .IsRequired()
+                    .HasMaxLength(128)
                     .HasColumnType("TEXT");
 
                 b.Property<int>("Role")
@@ -45,6 +58,7 @@ partial class _20261120135242_AjoutProgression
 
                 b.Property<string>("Username")
                     .IsRequired()
+                    .HasMaxLength(32)
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");

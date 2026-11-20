@@ -1,10 +1,10 @@
 namespace GameServerApi.Models;
 
-public class Progression
+public class Progression(int userId = 0)
 {
     public int Id { get; init; }
-    public required int UserId;
-    public int Count = 0;
-    public int Multiplier = 1;
-    public int BestScore = 0;
+    public int UserId { get; set; } = userId;
+    public int Count { get; set; } = 0;
+    public int Multiplier { get; set; } = 1;
+    public int BestScore { get; set; } = 0;
 }
