@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using GameServerApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace GameServerApi.Controllers
 {
@@ -41,12 +42,31 @@ namespace GameServerApi.Controllers
         // POST /api/User/Register
         [HttpPost("Register")]
         public async Task<ActionResult<UserPublic>> Register(UserPass upass)
-        {
-            User user = new(upass.Username);
-            user.Password = _hasher.HashPassword(user, upass.Password);
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return Ok(new UserPublic(user));
+        {   
+            var userfound = await _context.Users.FirstOrDefaultAsync(u => upass.Username.Equals(u.Username));
+
+            if(null == userfound) 
+            {
+                User user = new(upass.Username);
+
+                if (await _context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
+                    user.Role = UserRole.Admin;
+                user.Password = _hasher.HashPassword(user, upass.Password);
+                _context.Users.Add(user);
+
+                try
+                {
+                   await _context.SaveChangesAsync(); 
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return BadRequest("REGISTRATION_FAILED");
+                }
+
+                return Ok(new UserPublic(user));
+            }
+            return BadRequest("USERNAME_EXISTS");
         }
 
         // POST /api/User/Login
