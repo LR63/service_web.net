@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using GameServerApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using SQLitePCL;
 
 namespace GameServerApi.Controllers;
 [Route("api/[controller]")]
@@ -116,6 +118,12 @@ public class UserController(BDDContext context, PasswordHasher<User> hasher) : C
         context.Users.Remove(u);
         await context.SaveChangesAsync();
 
+        Progression? uprog = await context.Progressions.FirstOrDefaultAsync(p => id == p.UserId);
+        
+        if (null != uprog)
+            context.Progressions.Remove(uprog);
+        context.Users.Remove(u);
+        await context.SaveChangesAsync();
         return Ok(true);
     }
 
