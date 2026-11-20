@@ -1,8 +1,8 @@
 namespace GameServerApi.Models;
 
-public class UserUpdate(string username, string? password, UserRole role)
+public record UserUpdate(string Username, string? Password, UserRole Role)
 {
-    public string Username { get; set; } = username;
-    public string? Password { get; set; } = password;
-    public UserRole Role { get; set; } = role;
+    public string Username { get; set; } = Username;
+    public string? Password { get; set; } = Password;
+    public UserRole Role { get; set; } = Role;
 }
