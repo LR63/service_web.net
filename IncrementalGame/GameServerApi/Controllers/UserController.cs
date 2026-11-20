@@ -2,61 +2,51 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using GameServerApi.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace GameServerApi.Controllers
+namespace GameServerApi.Controllers;
+[Route("api/[controller]")]
+[ApiController]
+public class UserController(BDDContext context, PasswordHasher<User> hasher) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+
+    // GET /api/User/{id}
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<UserPublic>> GetUser(int id)
     {
-        private readonly BDDContext _context;
-        private readonly PasswordHasher<User> _hasher;
+        var u = await context.Users.FindAsync(id);
 
-        public UserController(BDDContext context, PasswordHasher<User> hasher)
+        if (null != u)
         {
-            _context = context;
-            _hasher = hasher;
+            return Ok(new UserPublic(u));
         }
+        return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+    }
 
-        // GET /api/User/{id}
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<UserPublic>> GetUser(int id)
-        {
-            var u = await _context.Users.FindAsync(id);
-
-            if (null != u)
-            {
-                return Ok(new UserPublic(u));
-            }
-            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
-        }
-
-        // GET /api/User/All
-        [HttpGet("All")]
-        public async Task<ActionResult<List<UserPublic>>> GetAll()
-        {
-            return Ok(await _context.Users.Select(u => new UserPublic(u)).ToListAsync());
-        }
+    // GET /api/User/All
+    [HttpGet("All")]
+    public async Task<ActionResult<List<UserPublic>>> GetAll()
+    {
+        return Ok(await context.Users.Select(u => new UserPublic(u)).ToListAsync());
+    }
 
         // POST /api/User/Register
         [HttpPost("Register")]
         public async Task<ActionResult<UserPublic>> Register(UserPass upass)
         {   
-            var userfound = await _context.Users.FirstOrDefaultAsync(u => upass.Username.Equals(u.Username));
+            var userfound = await context.Users.FirstOrDefaultAsync(u => upass.Username.Equals(u.Username));
 
             if(null == userfound) 
             {
                 User user = new(upass.Username);
 
-                if (await _context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
+                if (await context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
                     user.Role = UserRole.Admin;
-                user.Password = _hasher.HashPassword(user, upass.Password);
-                _context.Users.Add(user);
+                user.Password = hasher.HashPassword(user, upass.Password);
+                context.Users.Add(user);
 
                 try
                 {
-                   await _context.SaveChangesAsync(); 
+                   await context.SaveChangesAsync(); 
                 }
                 catch (Exception e)
                 {
@@ -69,78 +59,77 @@ namespace GameServerApi.Controllers
             return BadRequest("USERNAME_EXISTS");
         }
 
-        // POST /api/User/Login
-        [HttpPost("Login")]
-        public async Task<ActionResult<UserPublic>> Login(UserPass upass)
-        {
-            User? user = await _context.Users.FirstOrDefaultAsync(x => x.Username.Equals(upass.Username));
+    // POST /api/User/Login
+    [HttpPost("Login")]
+    public async Task<ActionResult<UserPublic>> Login(UserPass upass)
+    {
+        User? user = await context.Users.FirstOrDefaultAsync(x => x.Username.Equals(upass.Username));
 
-            if (null != user)
+        if (null != user)
+        {
+            var result = hasher.VerifyHashedPassword(user, user.Password, upass.Password);
+            if (result != PasswordVerificationResult.Failed)
             {
-                var result = _hasher.VerifyHashedPassword(user, user.Password, upass.Password);
-                if (result != PasswordVerificationResult.Failed)
-                {
-                    return Ok(new UserPublic(user));
-                }
-                return StatusCode(401, new ErrorResponse("Incorrect password", "INVALID_PASSWORD"));
+                return Ok(new UserPublic(user));
             }
-            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+            return StatusCode(401, new ErrorResponse("Incorrect password", "INVALID_PASSWORD"));
         }
+        return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+    }
 
-        // PUT /api/User/{id}
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<UserPublic>> Update(int id, UserUpdate update)
+    // PUT /api/User/{id}
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<UserPublic>> Update(int id, UserUpdate update)
+    {
+        User? u = await context.Users.FindAsync(id);
+
+        if (null != u)
         {
-            User? u = await _context.Users.FindAsync(id);
+            u.Username = update.Username;
+            u.Role = update.Role;
 
-            if (null != u)
+            if (!string.IsNullOrWhiteSpace(update.Password))
+                u.Password = hasher.HashPassword(u, update.Password);
+            
+            try
             {
-                u.Username = update.Username;
-                u.Role = update.Role;
-
-                if (!string.IsNullOrWhiteSpace(update.Password))
-                    u.Password = _hasher.HashPassword(u, update.Password);
-                
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    return StatusCode(409, new ErrorResponse("Concurrency error", "CONCURRENCY_ERROR"));
-                }
-
-                return Ok(new UserPublic(u));
+                await context.SaveChangesAsync();
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(409, new ErrorResponse("Concurrency error", "CONCURRENCY_ERROR"));
+            }
+
+            return Ok(new UserPublic(u));
+        }
+        return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+    }
+
+    // DELETE /api/User/{id}
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult<bool>> Delete(int id)
+    {
+        User? u = await context.Users.FindAsync(id);
+        if (null == u)
             return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
-        }
 
-        // DELETE /api/User/{id}
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<bool>> Delete(int id)
-        {
-            User? u = await _context.Users.FindAsync(id);
-            if (null == u)
-                return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
+        context.Users.Remove(u);
+        await context.SaveChangesAsync();
 
-            _context.Users.Remove(u);
-            await _context.SaveChangesAsync();
+        return Ok(true);
+    }
 
-            return Ok(true);
-        }
+    // GET /api/User/AllAdmin
+    [HttpGet("AllAdmin")]
+    public async Task<ActionResult<List<UserPublic>>> AllAdmin()
+    {
+        return Ok(await context.Users.Where(u => UserRole.Admin == u.Role).Select(u => new UserPublic(u)).ToListAsync());
+    }
 
-        // GET /api/User/AllAdmin
-        [HttpGet("AllAdmin")]
-        public async Task<ActionResult<List<UserPublic>>> AllAdmin()
-        {
-            return Ok(await _context.Users.Where(u => UserRole.Admin == u.Role).Select(u => new UserPublic(u)).ToListAsync());
-        }
-
-        // GET /api/User/Search/{name}
-        [HttpGet("Search/{name}")]
-        public async Task<ActionResult<List<UserPublic>>> Search(string name)
-        {
-            return Ok(await _context.Users.Where(u => u.Username.Contains(name)).Select(u => new UserPublic(u)).ToListAsync());
-        }
+    // GET /api/User/Search/{name}
+    [HttpGet("Search/{name}")]
+    public async Task<ActionResult<List<UserPublic>>> Search(string name)
+    {
+        return Ok(await context.Users.Where(u => u.Username.Contains(name)).Select(u => new UserPublic(u)).ToListAsync());
     }
 }
