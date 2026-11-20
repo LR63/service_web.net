@@ -28,7 +28,7 @@ namespace GameServerApi.Controllers
             {
                 return Ok(new UserPublic(u));
             }
-            return NotFound("Utilisateur introuvable");
+            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
         }
 
         // GET /api/User/All
@@ -42,7 +42,11 @@ namespace GameServerApi.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<UserPublic>> Register(UserPass upass)
         {
-            User user = new User(upass.Username);
+            if (await _context.Users.AnyAsync(x => x.Username.Equals(upass.Username)))
+            {
+                return Conflict(new ErrorResponse("Username already exists", "USERNAME_EXISTS"));
+            }
+            User user = new(upass.Username);
             user.Password = _hasher.HashPassword(user, upass.Password);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -62,9 +66,9 @@ namespace GameServerApi.Controllers
                 {
                     return Ok(new UserPublic(user));
                 }
-                return StatusCode(401, "Mot de passe incorrect");
+                return StatusCode(401, new ErrorResponse("Incorrect password", "INVALID_PASSWORD"));
             }
-            return NotFound("Utilisateur inconnu");
+            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
         }
 
         // PUT /api/User/{id}
@@ -87,13 +91,12 @@ namespace GameServerApi.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    return Conflict("Erreur de concurrence");
+                    return StatusCode(409, new ErrorResponse("Concurrency error", "CONCURRENCY_ERROR"));
                 }
 
                 return Ok(new UserPublic(u));
             }
-        
-            return NotFound();
+            return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
         }
 
         // DELETE /api/User/{id}
@@ -102,7 +105,7 @@ namespace GameServerApi.Controllers
         {
             User? u = await _context.Users.FindAsync(id);
             if (null == u)
-                return NotFound();
+                return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
 
             _context.Users.Remove(u);
             await _context.SaveChangesAsync();

@@ -1,8 +1,8 @@
 namespace GameServerApi.Models;
-public class UserPublic(User? user)
+public record UserPublic(User? User)
 {
-    public int Id { get; } = user.Id;
-    public string Pseudo { get; } = user.Username;
-    public UserRole UserRole { get; } = user.Role;
+    public int Id { get; } = User.Id;
+    public string Pseudo { get; } = User.Username;
+    public UserRole UserRole { get; } = User.Role;
 
 }
