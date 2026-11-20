@@ -1,5 +1,6 @@
 using Scalar.AspNetCore;
 using GameServerApi.Models;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<BDDContext>();
+builder.Services.AddScoped<PasswordHasher<User>>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

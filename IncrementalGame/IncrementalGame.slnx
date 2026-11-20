@@ -1,4 +1,3 @@
 <Solution>
   <Project Path="GameServerApi/GameServerApi.csproj" />
-  <Project Path="IncrementalGame/IncrementalGame.csproj" />
 </Solution>

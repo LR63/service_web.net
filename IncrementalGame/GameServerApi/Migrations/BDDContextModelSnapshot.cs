@@ -14,7 +14,7 @@ partial class BDDContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261113140051_InitialisationDeLaDB";
+    public override string LastMigrationId => "20261119213853_InitialisationDeLaDB";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -31,12 +31,12 @@ partial class BDDContextModelSnapshot : ModelSnapshot
                     .IsRequired()
                     .HasColumnType("TEXT");
 
-                b.Property<string>("Pseudo")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
-
                 b.Property<int>("Role")
                     .HasColumnType("INTEGER");
+
+                b.Property<string>("Username")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 

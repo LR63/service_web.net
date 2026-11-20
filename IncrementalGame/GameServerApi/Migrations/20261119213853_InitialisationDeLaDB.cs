@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GameServerApi.Migrations;
 
 /// <inheritdoc />
-public partial class _20261113140051_InitialisationDeLaDB : Migration
+public partial class _20261119213853_InitialisationDeLaDB : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +16,7 @@ public partial class _20261113140051_InitialisationDeLaDB : Migration
             {
                 Id = table.Column<int>(type: "INTEGER", nullable: false)
                     .Annotation("Sqlite:Autoincrement", true),
-                Pseudo = table.Column<string>(type: "TEXT", nullable: false),
+                Username = table.Column<string>(type: "TEXT", nullable: false),
                 Password = table.Column<string>(type: "TEXT", nullable: false),
                 Role = table.Column<int>(type: "INTEGER", nullable: false)
             },
