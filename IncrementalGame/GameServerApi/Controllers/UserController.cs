@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using GameServerApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using SQLitePCL;
 
 namespace GameServerApi.Controllers
 {
@@ -123,6 +124,10 @@ namespace GameServerApi.Controllers
             if (null == u)
                 return NotFound(new ErrorResponse("User not found", "USER_NOT_FOUND"));
 
+            Progression? uprog = await _context.Progressions.FirstOrDefaultAsync(p => id == p.UserId);
+            
+            if (null != uprog)
+                _context.Progressions.Remove(uprog);
             _context.Users.Remove(u);
             await _context.SaveChangesAsync();
 
