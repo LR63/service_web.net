@@ -30,5 +30,24 @@ namespace GameServerApi.Controllers
             }
             return Ok(new ResetCostResponse(CalculateResetCost(userProgression.Multiplier)));
         }
+
+        // POST /api/Game/Reset/{userId}
+        [HttpPost("Reset/{id:int}")]
+        public async Task<ActionResult<Progression>> Reset(int id)
+        {
+            var userProgression = await context.Progressions.FindAsync(id);
+            if (null == userProgression)
+            {
+                return BadRequest(new ErrorResponse("User has no progression", "NO_PROGRESSION"));
+            }
+            int resetCost = CalculateResetCost(userProgression.Multiplier);
+            if (userProgression.Count >= resetCost)
+            {
+                userProgression.BestScore = Math.Max(userProgression.BestScore, userProgression.Count);
+                userProgression.Count = 0;
+                userProgression.Multiplier += 1;
+            }
+            return Ok(userProgression);
+        }
     }
 }
