@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://csharp.nouvet.fr").AllowAnyHeader().AllowAnyMethod());
 });
 
 // Add services to the container.
@@ -21,7 +21,7 @@ builder.Services.AddDbContext<BDDContext>();
 builder.Services.AddScoped<PasswordHasher<User>>();
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigin");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
