@@ -41,7 +41,7 @@ public class UserController(BDDContext context, PasswordHasher<User> hasher) : C
             {
                 User user = new(upass.Username);
 
-                if (await context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
+                if (!await context.Users.Where(u => UserRole.Admin == u.Role).AnyAsync())
                     user.Role = UserRole.Admin;
                 user.Password = hasher.HashPassword(user, upass.Password);
                 context.Users.Add(user);
